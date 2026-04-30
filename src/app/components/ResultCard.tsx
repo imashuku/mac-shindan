@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   MacModel,
   MemorySize,
@@ -50,8 +51,34 @@ export default function ResultCard({
   onRestart,
   onJumpToQuestion,
 }: Props) {
+  const [nickname, setNickname] = useState("");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+
   const spec = macSpecs[bestModel];
   const price = spec.priceFrom.toLocaleString();
+
+  const handleSave = async () => {
+    if (!nickname.trim() || saveState === "saving" || saveState === "saved") return;
+    setSaveState("saving");
+    try {
+      const res = await fetch("/api/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: crypto.randomUUID(),
+          nickname: nickname.trim(),
+          answers: JSON.stringify(answers),
+          best_model: bestModel,
+          best_memory: bestMemory,
+          best_storage: bestStorage,
+        }),
+      });
+      if (!res.ok) throw new Error("Save failed");
+      setSaveState("saved");
+    } catch {
+      setSaveState("error");
+    }
+  };
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -217,8 +244,51 @@ export default function ResultCard({
         </a>
       </div>
 
+      {/* Save result */}
+      <div className="animate-fade-in-up stagger-6 bg-card rounded-2xl border border-border p-5 sm:p-6 mb-6">
+        <h4 className="font-bold text-foreground mb-1 text-sm">
+          診断結果を記録する
+        </h4>
+        <p className="text-xs text-muted mb-4">
+          ニックネームを入力して保存すると、あとから振り返れます
+        </p>
+        {saveState === "saved" ? (
+          <div className="text-sm text-foreground text-center py-2">
+            保存しました
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="ニックネーム"
+              maxLength={20}
+              className="flex-1 min-h-[44px] px-4 py-2 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/50 focus-visible:outline-accent"
+              disabled={saveState === "saving"}
+            />
+            <button
+              onClick={handleSave}
+              disabled={!nickname.trim() || saveState === "saving"}
+              className={`min-h-[44px] px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
+                nickname.trim() && saveState !== "saving"
+                  ? "bg-foreground text-background hover:bg-foreground/90"
+                  : "bg-foreground/10 text-foreground/30 cursor-not-allowed"
+              }`}
+            >
+              {saveState === "saving" ? "保存中…" : "保存"}
+            </button>
+          </div>
+        )}
+        {saveState === "error" && (
+          <p className="text-xs text-red-500 mt-2">
+            保存に失敗しました。もう一度お試しください。
+          </p>
+        )}
+      </div>
+
       {/* Restart */}
-      <div className="text-center animate-fade-in-up stagger-6 pb-4">
+      <div className="text-center animate-fade-in-up pb-4">
         <button
           onClick={onRestart}
           className="min-h-[44px] px-8 py-3 border border-border rounded-full text-sm font-medium text-foreground hover:bg-foreground/5 active:bg-foreground/8 transition-colors duration-200 cursor-pointer"
