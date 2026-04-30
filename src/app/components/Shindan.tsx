@@ -118,7 +118,7 @@ export default function Shindan() {
               どれだろう？
             </h1>
             <p className="text-muted mt-4 leading-relaxed">
-              7つの質問に答えるだけで、モデル・メモリ・
+              いくつかの質問に答えるだけで、モデル・メモリ・
               <br className="hidden sm:block" />
               ストレージまで、最適な構成がわかります。
             </p>

@@ -24,6 +24,40 @@ export type Question = {
 
 export const questions: Question[] = [
   {
+    id: "apple_devices",
+    question: "iPhoneやiPadは使っていますか？",
+    type: "sa",
+    options: [
+      {
+        label: "iPhoneを使っている",
+        sub: "Macと繋がると、仕事の流れが変わります",
+        scores: {
+          model: { air13: 1 },
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "iPhoneもiPadも使っている",
+        sub: "Mac が加わると、Apple製品の連携が本領を発揮します",
+        scores: {
+          model: { air13: 1, pro14: 1 },
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "使っていない",
+        sub: "Macは単体でも十分活躍します",
+        scores: {
+          model: {},
+          memory: {},
+          storage: {},
+        },
+      },
+    ],
+  },
+  {
     id: "experience",
     question: "パソコンはどれくらい使っていますか？",
     type: "sa",
@@ -50,7 +84,7 @@ export const questions: Question[] = [
         label: "毎日のように使っている",
         sub: "仕事やプライベートで日常的に使う",
         scores: {
-          model: { air13: 2, air15: 2, pro14: 3, pro14pro: 1 },
+          model: { air13: 1, air15: 2, pro14: 3, pro14pro: 2 },
           memory: { "16gb": 2, "24gb": 2 },
           storage: { "512gb": 2, "1tb": 2 },
         },
@@ -76,8 +110,17 @@ export const questions: Question[] = [
         label: "文書・資料づくり",
         sub: "Word、Excel、PowerPointなどの事務作業",
         scores: {
-          model: { air13: 3, air15: 1 },
+          model: { air13: 2, air15: 1, pro14: 1 },
           memory: { "16gb": 3 },
+          storage: { "512gb": 2 },
+        },
+      },
+      {
+        label: "プレゼン・会議での発表",
+        sub: "スライドを映したり、会議室で資料を見せる",
+        scores: {
+          model: { air15: 1, pro14: 3, pro14pro: 2, pro16pro: 1 },
+          memory: { "16gb": 2 },
           storage: { "512gb": 2 },
         },
       },
@@ -85,7 +128,7 @@ export const questions: Question[] = [
         label: "AIツールの活用",
         sub: "ChatGPTやClaudeなどを仕事に使いたい",
         scores: {
-          model: { air13: 3, air15: 2, pro14: 1 },
+          model: { air13: 2, air15: 2, pro14: 2 },
           memory: { "16gb": 2, "24gb": 2 },
           storage: { "512gb": 2 },
         },
@@ -164,20 +207,29 @@ export const questions: Question[] = [
   },
   {
     id: "portability",
-    question: "持ち運びはどうしますか？",
+    question: "パソコンの持ち運び、どうなりそうですか？",
     type: "sa",
     options: [
       {
-        label: "毎日カバンに入れたい",
-        sub: "カフェや外出先でも使いたい",
+        label: "電車やバスで毎日持ち歩く",
+        sub: "カバンに入れて通勤・外出する",
         scores: {
-          model: { neo: 3, air13: 3, pro14: 1 },
+          model: { neo: 3, air13: 3 },
           memory: {},
           storage: {},
         },
       },
       {
-        label: "たまに持ち出す程度",
+        label: "車移動が多いので重さは気にならない",
+        sub: "駐車場から会議室まで運ぶ程度",
+        scores: {
+          model: { air13: 1, air15: 2, pro14: 3, pro14pro: 2, pro16pro: 1 },
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "たまに外に持ち出す程度",
         sub: "基本は自宅だけど、時々外でも",
         scores: {
           model: { air13: 2, air15: 2, pro14: 2 },
@@ -301,7 +353,7 @@ export const questions: Question[] = [
         label: "AIで仕事を変えたい",
         sub: "最新のAIツールを使いこなしたい",
         scores: {
-          model: { air13: 3, air15: 2, pro14: 1 },
+          model: { air13: 2, air15: 2, pro14: 2 },
           memory: { "16gb": 2, "24gb": 2 },
           storage: { "512gb": 3 },
         },
@@ -497,6 +549,10 @@ export function computeResult(answers: Record<string, number[]>) {
   return { bestModel, bestMemory, bestStorage, runners, reasons, modelScores };
 }
 
+function findQuestion(id: string): number {
+  return questions.findIndex((q) => q.id === id);
+}
+
 function buildReasons(
   answers: Record<string, number[]>,
   model: MacModel,
@@ -505,9 +561,12 @@ function buildReasons(
 ): ReasonEntry[] {
   const result: ReasonEntry[] = [];
   const spec = macSpecs[model];
+  const isPro = model === "pro14" || model === "pro14pro" || model === "pro16pro";
 
+  const purposeIdx = findQuestion("purpose");
   const purposeIdxs = answers["purpose"] ?? [];
-  const purposeLabels = purposeIdxs.map((i) => questions[1].options[i]?.label).filter(Boolean);
+  const purposeLabels = purposeIdxs.map((i) => questions[purposeIdx]?.options[i]?.label).filter(Boolean);
+
   if (purposeLabels.length > 0) {
     const joined = purposeLabels.join("、");
     result.push({
@@ -516,8 +575,22 @@ function buildReasons(
     });
   }
 
-  const memLabel = memoryLabels[memory];
   const hasPurpose = (label: string) => purposeLabels.includes(label);
+  if (isPro && hasPurpose("プレゼン・会議での発表")) {
+    result.push({
+      answer: "プレゼンが多い",
+      reason: "ProならHDMIケーブルを直接挿せるので、変換アダプタなしでプロジェクターやモニターに接続できます",
+    });
+  }
+
+  if (isPro) {
+    result.push({
+      answer: "Proの実用的なメリット",
+      reason: "USB-Cポートが左右両側にあるので、電源の位置を気にせず作業できます。ポート数も豊富で周辺機器の接続に困りません",
+    });
+  }
+
+  const memLabel = memoryLabels[memory];
   if (hasPurpose("動画の編集") || hasPurpose("プログラミング・開発")) {
     result.push({
       answer: "高負荷な作業あり",
@@ -536,8 +609,9 @@ function buildReasons(
   }
 
   const storLabel = storageLabels[storage];
+  const dataQIdx = findQuestion("data");
   const dataIdx = (answers["data"] ?? [0])[0];
-  const dataLabel = questions[5].options[dataIdx]?.label ?? "";
+  const dataLabel = questions[dataQIdx]?.options[dataIdx]?.label ?? "";
   result.push({
     answer: `データ量「${dataLabel}」`,
     reason: `お持ちのデータ量に合わせて、ストレージは${storLabel}をおすすめします`,
@@ -546,8 +620,26 @@ function buildReasons(
   const portIdx = (answers["portability"] ?? [0])[0];
   if (portIdx === 0) {
     result.push({
-      answer: "毎日持ち歩く",
+      answer: "電車で毎日持ち歩く",
       reason: `${spec.weight}と軽量で、毎日の持ち運びも苦になりません`,
+    });
+  } else if (portIdx === 1) {
+    result.push({
+      answer: "車移動が中心",
+      reason: "車移動なら重さはほぼ気になりません。性能やポートの充実度を優先した構成をおすすめします",
+    });
+  }
+
+  const appleIdx = (answers["apple_devices"] ?? [])[0];
+  if (appleIdx === 0) {
+    result.push({
+      answer: "iPhoneを利用中",
+      reason: "Macが加わると、AirDropでのファイル共有、iPhoneで撮った写真の自動同期、通話やメッセージの引き継ぎなど、iPhoneがもっと便利になります",
+    });
+  } else if (appleIdx === 1) {
+    result.push({
+      answer: "iPhone + iPadを利用中",
+      reason: "MacならiPadをサブディスプレイにしたり（Sidecar）、デバイス間でコピペやファイル共有がシームレスに。3台揃うとApple製品の連携が本領を発揮します",
     });
   }
 
