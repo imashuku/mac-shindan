@@ -37,6 +37,9 @@ export const metadata: Metadata = {
     images: ["/og.png"],
   },
   robots: { index: true, follow: true },
+  verification: {
+    google: "kvpyS4mfhpJWBoKr46TTsziHgga3QlDw-XbSH8C3KxA",
+  },
 };
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
