@@ -244,6 +244,29 @@ export default function ResultCard({
         </a>
       </div>
 
+      {/* Consulting CTA */}
+      <div className="animate-fade-in-up stagger-5 bg-card rounded-2xl border border-border p-5 sm:p-6 mb-6 text-center">
+        <h4 className="font-bold text-foreground mb-1 text-sm">
+          Macの導入や活用でお悩みですか？
+        </h4>
+        <p className="text-xs text-muted mb-4 leading-relaxed">
+          「買ったけど使いこなせない」「AIを仕事に
+          <br className="sm:hidden" />
+          活かしたい」など、お気軽にご相談ください
+        </p>
+        <a
+          href="https://step-out.jp/contact"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-block min-h-[44px] px-8 py-3 border border-foreground rounded-full text-sm font-medium text-foreground hover:bg-foreground hover:text-background transition-colors duration-200"
+        >
+          無料相談してみる
+        </a>
+        <p className="text-xs text-muted/60 mt-3">
+          ステップアウトマーケティング合同会社
+        </p>
+      </div>
+
       {/* Save result */}
       <div className="animate-fade-in-up stagger-6 bg-card rounded-2xl border border-border p-5 sm:p-6 mb-6">
         <h4 className="font-bold text-foreground mb-1 text-sm">
