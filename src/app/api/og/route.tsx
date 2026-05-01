@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   const screen = spec?.screen ?? "";
   const price = spec ? `${spec.priceFrom.toLocaleString()}円〜` : "";
 
-  return new ImageResponse(
+  const response = new ImageResponse(
     (
       <div
         style={{
@@ -138,4 +138,11 @@ export async function GET(req: NextRequest) {
       fonts: [{ name: "NotoSansJP", data: fontData, style: "normal" }],
     }
   );
+
+  response.headers.set(
+    "Cache-Control",
+    "public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800"
+  );
+
+  return response;
 }
