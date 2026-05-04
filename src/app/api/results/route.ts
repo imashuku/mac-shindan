@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
     const { id, nickname, answers, best_model, best_memory, best_storage } =
       body;
 
-    if (!id || !nickname || !answers || !best_model || !best_memory || !best_storage) {
+    if (!id || nickname == null || !answers || !best_model || !best_memory || !best_storage) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    if (typeof nickname !== "string" || nickname.trim().length === 0 || nickname.length > MAX_NICKNAME_LENGTH) {
+    if (typeof nickname !== "string" || nickname.length > MAX_NICKNAME_LENGTH) {
       return NextResponse.json(
         { error: "Invalid nickname" },
         { status: 400 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MacModel,
   MemorySize,
@@ -10,6 +10,7 @@ import {
   storageLabels,
   questions,
   ReasonEntry,
+  buildComparison,
 } from "../data";
 
 type Props = {
@@ -51,34 +52,26 @@ export default function ResultCard({
   onRestart,
   onJumpToQuestion,
 }: Props) {
-  const [nickname, setNickname] = useState("");
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-
   const spec = macSpecs[bestModel];
   const price = spec.priceFrom.toLocaleString();
+  const savedRef = useRef(false);
 
-  const handleSave = async () => {
-    if (!nickname.trim() || saveState === "saving" || saveState === "saved") return;
-    setSaveState("saving");
-    try {
-      const res = await fetch("/api/results", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: crypto.randomUUID(),
-          nickname: nickname.trim(),
-          answers: JSON.stringify(answers),
-          best_model: bestModel,
-          best_memory: bestMemory,
-          best_storage: bestStorage,
-        }),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      setSaveState("saved");
-    } catch {
-      setSaveState("error");
-    }
-  };
+  useEffect(() => {
+    if (savedRef.current) return;
+    savedRef.current = true;
+    fetch("/api/results", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: crypto.randomUUID(),
+        nickname: "",
+        answers: JSON.stringify(answers),
+        best_model: bestModel,
+        best_memory: bestMemory,
+        best_storage: bestStorage,
+      }),
+    }).catch(() => {});
+  }, [answers, bestModel, bestMemory, bestStorage]);
 
   return (
     <div className="w-full max-w-xl mx-auto">
@@ -174,6 +167,41 @@ export default function ResultCard({
           Xでシェア
         </button>
       </div>
+
+      {/* Before/After comparison */}
+      {(() => {
+        const comparisons = buildComparison(answers, bestModel);
+        if (comparisons.length === 0) return null;
+        return (
+          <div className="animate-fade-in-up stagger-2 bg-card rounded-2xl border border-border overflow-hidden mb-6">
+            <div className="p-5 sm:p-6">
+              <h4 className="font-bold text-foreground mb-1 text-sm">
+                今のお悩み、このMacで解決できます
+              </h4>
+              <p className="text-xs text-muted mb-4">あなたが選んだ「困っていること」に対して</p>
+              <div className="space-y-4">
+                {comparisons.map((c, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className="shrink-0 mt-0.5 flex flex-col items-center gap-1">
+                      <span className="text-red-400 text-xs font-bold" aria-hidden="true">✕</span>
+                      <div className="w-px flex-1 bg-border" />
+                      <span className="text-green-500 text-xs font-bold" aria-hidden="true">✓</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-red-500/70 line-through decoration-red-300">
+                        {c.frustration}
+                      </div>
+                      <div className="text-sm text-foreground font-medium mt-1 leading-relaxed">
+                        {c.resolution}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Reasoning */}
       <div className="animate-fade-in-up stagger-2 bg-card rounded-2xl border border-border p-5 sm:p-6 mb-6">
@@ -303,49 +331,6 @@ export default function ResultCard({
         <p className="text-xs text-muted/60 mt-3">
           ステップアウトマーケティング合同会社
         </p>
-      </div>
-
-      {/* Save result */}
-      <div className="animate-fade-in-up stagger-6 bg-card rounded-2xl border border-border p-5 sm:p-6 mb-6">
-        <h4 className="font-bold text-foreground mb-1 text-sm">
-          診断結果を記録する
-        </h4>
-        <p className="text-xs text-muted mb-4">
-          ニックネームを入力して保存すると、あとから振り返れます
-        </p>
-        {saveState === "saved" ? (
-          <div className="text-sm text-foreground text-center py-2">
-            保存しました
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="ニックネーム"
-              maxLength={20}
-              className="flex-1 min-h-[44px] px-4 py-2 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted/50 focus-visible:outline-accent"
-              disabled={saveState === "saving"}
-            />
-            <button
-              onClick={handleSave}
-              disabled={!nickname.trim() || saveState === "saving"}
-              className={`min-h-[44px] px-5 py-2 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer ${
-                nickname.trim() && saveState !== "saving"
-                  ? "bg-foreground text-background hover:bg-foreground/90"
-                  : "bg-foreground/10 text-foreground/30 cursor-not-allowed"
-              }`}
-            >
-              {saveState === "saving" ? "保存中…" : "保存"}
-            </button>
-          </div>
-        )}
-        {saveState === "error" && (
-          <p className="text-xs text-red-500 mt-2">
-            保存に失敗しました。もう一度お試しください。
-          </p>
-        )}
       </div>
 
       {/* Restart */}
