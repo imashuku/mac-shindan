@@ -8,10 +8,30 @@ type Props = {
   onJump: (index: number) => void;
 };
 
+function isAutoSkipped(
+  qIndex: number,
+  answers: Record<string, number[]>
+): boolean {
+  const q = questions[qIndex];
+  if (
+    q.id === "current_pc_age" &&
+    answers["current_frustrations"]?.includes(5)
+  )
+    return true;
+  if (
+    q.id === "experience" &&
+    (answers["current_pc_age"]?.includes(4) ||
+      answers["current_frustrations"]?.includes(5))
+  )
+    return true;
+  return false;
+}
+
 export default function AnswerChips({ answers, currentIndex, onJump }: Props) {
   const chips: { qIndex: number; label: string }[] = [];
 
   for (let i = 0; i < currentIndex; i++) {
+    if (isAutoSkipped(i, answers)) continue;
     const q = questions[i];
     const selected = answers[q.id] ?? [];
     for (const idx of selected) {

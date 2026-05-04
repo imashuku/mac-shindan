@@ -58,6 +58,120 @@ export const questions: Question[] = [
     ],
   },
   {
+    id: "current_frustrations",
+    question: "今のパソコンで困っていることは？",
+    sub: "あてはまるものをすべて選んでください",
+    type: "ma",
+    options: [
+      {
+        label: "起動や動作が遅い",
+        sub: "電源を入れてから使えるまでに時間がかかる",
+        scores: {
+          model: {},
+          memory: { "16gb": 1 },
+          storage: {},
+        },
+      },
+      {
+        label: "バッテリーが持たない",
+        sub: "外出先ですぐ充電が必要になる",
+        scores: {
+          model: { air13: 1 },
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "重くて持ち運びがつらい",
+        sub: "カバンに入れると肩が凝る",
+        scores: {
+          model: { neo: 1, air13: 1 },
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "画面が小さい・見づらい",
+        sub: "文字が小さくて目が疲れる",
+        scores: {
+          model: { air15: 1, pro16pro: 1 },
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "やりたいことに性能が足りない",
+        sub: "ソフトが重い、フリーズする",
+        scores: {
+          model: { pro14: 1, pro14pro: 1 },
+          memory: { "24gb": 1 },
+          storage: {},
+        },
+      },
+      {
+        label: "特に不満はない・初めて買う",
+        sub: "現状に困っていない、またはパソコン未所持",
+        scores: {
+          model: {},
+          memory: {},
+          storage: {},
+        },
+      },
+    ],
+  },
+  {
+    id: "current_pc_age",
+    question: "今のパソコンはどのくらい使っていますか？",
+    type: "sa",
+    options: [
+      {
+        label: "1年未満",
+        sub: "まだ新しい",
+        scores: {
+          model: {},
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "1〜3年",
+        sub: "まだ現役だけど、そろそろ気になる",
+        scores: {
+          model: {},
+          memory: {},
+          storage: {},
+        },
+      },
+      {
+        label: "3〜5年",
+        sub: "動作が重くなってきた頃",
+        scores: {
+          model: {},
+          memory: { "16gb": 1 },
+          storage: {},
+        },
+      },
+      {
+        label: "5年以上",
+        sub: "かなり年季が入っている",
+        scores: {
+          model: {},
+          memory: { "16gb": 1 },
+          storage: {},
+        },
+      },
+      {
+        label: "パソコンを持っていない",
+        sub: "今回が初めての購入",
+        scores: {
+          model: { neo: 1, air13: 1 },
+          memory: {},
+          storage: {},
+        },
+      },
+    ],
+  },
+  {
     id: "experience",
     question: "パソコンはどれくらい使っていますか？",
     type: "sa",
@@ -640,6 +754,75 @@ function buildReasons(
     result.push({
       answer: "iPhone + iPadを利用中",
       reason: "MacならiPadをサブディスプレイにしたり（Sidecar）、デバイス間でコピペやファイル共有がシームレスに。3台揃うとApple製品の連携が本領を発揮します",
+    });
+  }
+
+  return result;
+}
+
+export type ComparisonEntry = {
+  frustration: string;
+  resolution: string;
+};
+
+export function buildComparison(
+  answers: Record<string, number[]>,
+  model: MacModel,
+): ComparisonEntry[] {
+  const frustrationIdxs = answers["current_frustrations"] ?? [];
+  const frustrationQ = questions.find((q) => q.id === "current_frustrations");
+  if (!frustrationQ) return [];
+
+  const selected = frustrationIdxs
+    .map((i) => frustrationQ.options[i]?.label)
+    .filter(Boolean);
+
+  if (selected.length === 0 || selected.includes("特に不満はない・初めて買う")) {
+    return [];
+  }
+
+  const spec = macSpecs[model];
+  const result: ComparisonEntry[] = [];
+
+  const ageIdxs = answers["current_pc_age"] ?? [];
+  const ageQ = questions.find((q) => q.id === "current_pc_age");
+  const ageLabel = ageQ?.options[ageIdxs[0]]?.label ?? "";
+  const isOld = ageLabel === "3〜5年" || ageLabel === "5年以上";
+
+  if (selected.includes("起動や動作が遅い")) {
+    result.push({
+      frustration: "起動や動作が遅い",
+      resolution: isOld
+        ? `${spec.chip}チップ搭載。${ageLabel}前のPCとは別次元の速さで、スリープからの復帰は一瞬です`
+        : `${spec.chip}チップで瞬時に起動。スリープからの復帰も一瞬です`,
+    });
+  }
+
+  if (selected.includes("バッテリーが持たない")) {
+    result.push({
+      frustration: "バッテリーが持たない",
+      resolution: `${spec.battery}のバッテリー駆動。1日中充電なしで使えます`,
+    });
+  }
+
+  if (selected.includes("重くて持ち運びがつらい")) {
+    result.push({
+      frustration: "重くて持ち運びがつらい",
+      resolution: `${spec.weight}の軽量設計。毎日カバンに入れても負担になりません`,
+    });
+  }
+
+  if (selected.includes("画面が小さい・見づらい")) {
+    result.push({
+      frustration: "画面が小さい・見づらい",
+      resolution: `${spec.screen}の高精細ディスプレイ。文字もくっきり、長時間の作業でも目が疲れにくい`,
+    });
+  }
+
+  if (selected.includes("やりたいことに性能が足りない")) {
+    result.push({
+      frustration: "性能が足りない",
+      resolution: `${spec.chip}の高性能チップで、複数アプリの同時使用もAIツールもサクサク動きます`,
     });
   }
 

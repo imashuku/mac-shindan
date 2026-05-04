@@ -6,12 +6,14 @@ type Props = {
   currentIndex: number;
   onJump: (index: number) => void;
   answeredUpTo: number;
+  skippedIndices?: Set<number>;
 };
 
-export default function ProgressBar({ currentIndex, onJump, answeredUpTo }: Props) {
+export default function ProgressBar({ currentIndex, onJump, answeredUpTo, skippedIndices }: Props) {
   return (
     <div className="flex items-center gap-1.5 w-full max-w-md mx-auto mb-2 py-3">
       {questions.map((_, i) => {
+        if (skippedIndices?.has(i)) return null;
         const isCompleted = i < answeredUpTo;
         const isCurrent = i === currentIndex;
         const isClickable = i <= answeredUpTo;

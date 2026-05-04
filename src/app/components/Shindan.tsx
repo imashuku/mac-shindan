@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { questions, computeResult } from "../data";
 import ProgressBar from "./ProgressBar";
 import AnswerChips from "./AnswerChips";
@@ -46,21 +46,54 @@ export default function Shindan() {
     [currentQ, answers, phase]
   );
 
+  const shouldSkip = useCallback(
+    (qIndex: number, ans: Record<string, number[]>): number[] | null => {
+      const q = questions[qIndex];
+      if (
+        q.id === "current_pc_age" &&
+        ans["current_frustrations"]?.includes(5)
+      ) {
+        return [4];
+      }
+      if (
+        q.id === "experience" &&
+        (ans["current_pc_age"]?.includes(4) ||
+          ans["current_frustrations"]?.includes(5))
+      ) {
+        return [0];
+      }
+      return null;
+    },
+    []
+  );
+
   const advance = useCallback(
     (newAnswers: Record<string, number[]>) => {
-      if (currentQ + 1 < questions.length) {
+      let next = currentQ + 1;
+      let updated = newAnswers;
+      while (next < questions.length) {
+        const autoAnswer = shouldSkip(next, updated);
+        if (autoAnswer) {
+          updated = { ...updated, [questions[next].id]: autoAnswer };
+          next++;
+        } else {
+          break;
+        }
+      }
+      setAnswers(updated);
+      if (next < questions.length) {
         setAnimDirection("right");
-        setCurrentQ(currentQ + 1);
-        const nextQ = questions[currentQ + 1];
+        setCurrentQ(next);
+        const nextQ = questions[next];
         if (nextQ.type === "ma") {
-          setMaSelections(newAnswers[nextQ.id] ?? []);
+          setMaSelections(updated[nextQ.id] ?? []);
         }
         setAnimKey((k) => k + 1);
       } else {
         setPhase("result");
       }
     },
-    [currentQ]
+    [currentQ, shouldSkip]
   );
 
   const handleSelectSA = useCallback(
@@ -94,9 +127,13 @@ export default function Shindan() {
 
   const handleBack = useCallback(() => {
     if (currentQ > 0) {
-      goToQuestion(currentQ - 1);
+      let prev = currentQ - 1;
+      while (prev > 0 && shouldSkip(prev, answers) !== null) {
+        prev--;
+      }
+      goToQuestion(prev);
     }
-  }, [currentQ, goToQuestion]);
+  }, [currentQ, answers, goToQuestion, shouldSkip]);
 
   const handleRestart = useCallback(() => {
     setPhase("intro");
@@ -104,6 +141,14 @@ export default function Shindan() {
     setAnswers({});
     setMaSelections([]);
   }, []);
+
+  const skippedIndices = useMemo(() => {
+    const set = new Set<number>();
+    for (let i = 0; i < questions.length; i++) {
+      if (shouldSkip(i, answers) !== null) set.add(i);
+    }
+    return set;
+  }, [answers, shouldSkip]);
 
   const result = phase === "result" ? computeResult(answers) : null;
 
@@ -141,6 +186,7 @@ export default function Shindan() {
             currentIndex={currentQ}
             onJump={goToQuestion}
             answeredUpTo={answeredUpTo}
+            skippedIndices={skippedIndices}
           />
           <AnswerChips
             answers={answers}
@@ -150,8 +196,8 @@ export default function Shindan() {
           <div className="flex-1 flex flex-col justify-center" key={animKey}>
             <QuestionCard
               question={questions[currentQ]}
-              currentIndex={currentQ}
-              totalQuestions={questions.length}
+              currentIndex={currentQ - [...skippedIndices].filter((i) => i < currentQ).length}
+              totalQuestions={questions.length - skippedIndices.size}
               selectedIndices={
                 questions[currentQ].type === "ma"
                   ? maSelections
