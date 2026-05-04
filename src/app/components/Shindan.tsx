@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { questions, computeResult } from "../data";
 import ProgressBar from "./ProgressBar";
 import AnswerChips from "./AnswerChips";
@@ -16,22 +16,34 @@ export default function Shindan() {
   const [maSelections, setMaSelections] = useState<number[]>([]);
   const [animDirection, setAnimDirection] = useState<"right" | "left">("right");
   const [animKey, setAnimKey] = useState(0);
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const answeredUpTo = questions.reduce((max, q, i) => {
     return answers[q.id] !== undefined ? Math.max(max, i + 1) : max;
   }, 0);
 
   const handleStart = useCallback(() => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
     setPhase("question");
     setCurrentQ(0);
     setAnswers({});
     setMaSelections([]);
+    setIsAdvancing(false);
     setAnimDirection("right");
     setAnimKey((k) => k + 1);
   }, []);
 
   const goToQuestion = useCallback(
     (index: number) => {
+      if (advanceTimerRef.current) {
+        clearTimeout(advanceTimerRef.current);
+        advanceTimerRef.current = null;
+      }
+      setIsAdvancing(false);
       setAnimDirection(index > currentQ ? "right" : "left");
       setCurrentQ(index);
       const q = questions[index];
@@ -69,6 +81,8 @@ export default function Shindan() {
 
   const advance = useCallback(
     (newAnswers: Record<string, number[]>) => {
+      setIsAdvancing(false);
+      advanceTimerRef.current = null;
       let next = currentQ + 1;
       let updated = newAnswers;
       while (next < questions.length) {
@@ -96,14 +110,33 @@ export default function Shindan() {
     [currentQ, shouldSkip]
   );
 
+  const answersThroughCurrent = useCallback(
+    (optionIndices: number[]) => {
+      const nextAnswers: Record<string, number[]> = {};
+      for (let i = 0; i < currentQ; i++) {
+        const q = questions[i];
+        if (answers[q.id] !== undefined) {
+          nextAnswers[q.id] = answers[q.id];
+        }
+      }
+      nextAnswers[questions[currentQ].id] = optionIndices;
+      return nextAnswers;
+    },
+    [answers, currentQ]
+  );
+
   const handleSelectSA = useCallback(
     (optionIndex: number) => {
-      const q = questions[currentQ];
-      const newAnswers = { ...answers, [q.id]: [optionIndex] };
+      if (isAdvancing) return;
+      if (advanceTimerRef.current) {
+        clearTimeout(advanceTimerRef.current);
+      }
+      setIsAdvancing(true);
+      const newAnswers = answersThroughCurrent([optionIndex]);
       setAnswers(newAnswers);
-      setTimeout(() => advance(newAnswers), 250);
+      advanceTimerRef.current = setTimeout(() => advance(newAnswers), 250);
     },
-    [currentQ, answers, advance]
+    [advance, answersThroughCurrent, isAdvancing]
   );
 
   const handleToggleMA = useCallback(
@@ -119,11 +152,10 @@ export default function Shindan() {
 
   const handleConfirmMA = useCallback(() => {
     if (maSelections.length === 0) return;
-    const q = questions[currentQ];
-    const newAnswers = { ...answers, [q.id]: [...maSelections] };
+    const newAnswers = answersThroughCurrent([...maSelections]);
     setAnswers(newAnswers);
     advance(newAnswers);
-  }, [currentQ, answers, maSelections, advance]);
+  }, [answersThroughCurrent, maSelections, advance]);
 
   const handleBack = useCallback(() => {
     if (currentQ > 0) {
@@ -136,10 +168,23 @@ export default function Shindan() {
   }, [currentQ, answers, goToQuestion, shouldSkip]);
 
   const handleRestart = useCallback(() => {
+    if (advanceTimerRef.current) {
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = null;
+    }
     setPhase("intro");
     setCurrentQ(0);
     setAnswers({});
     setMaSelections([]);
+    setIsAdvancing(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (advanceTimerRef.current) {
+        clearTimeout(advanceTimerRef.current);
+      }
+    };
   }, []);
 
   const skippedIndices = useMemo(() => {
@@ -208,6 +253,7 @@ export default function Shindan() {
               onConfirmMA={handleConfirmMA}
               onBack={handleBack}
               animDirection={animDirection}
+              disabled={isAdvancing}
             />
           </div>
         </div>

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { computeResult, parseAnswersPayload } from "@/app/data";
 
-const VALID_MODELS = new Set(["neo", "air13", "air15", "pro14", "pro14pro", "pro16pro"]);
-const VALID_MEMORY = new Set(["8gb", "16gb", "24gb", "32gb", "64gb"]);
-const VALID_STORAGE = new Set(["256gb", "512gb", "1tb", "2tb", "4tb"]);
 const MAX_NICKNAME_LENGTH = 20;
 const MAX_ANSWERS_LENGTH = 500;
 
@@ -11,10 +9,9 @@ export async function POST(request: NextRequest) {
     const { saveResult } = await import("@/lib/db");
     const body = await request.json();
 
-    const { id, nickname, answers, best_model, best_memory, best_storage } =
-      body;
+    const { id, nickname, answers } = body;
 
-    if (!id || nickname == null || !answers || !best_model || !best_memory || !best_storage) {
+    if (!id || nickname == null || !answers) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -35,44 +32,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!VALID_MODELS.has(best_model)) {
+    const parsedAnswers = parseAnswersPayload(answers);
+    if (!parsedAnswers) {
       return NextResponse.json(
-        { error: "Invalid model" },
+        { error: "Invalid answers" },
         { status: 400 }
       );
     }
 
-    if (!VALID_MEMORY.has(best_memory)) {
-      return NextResponse.json(
-        { error: "Invalid memory" },
-        { status: 400 }
-      );
-    }
-
-    if (!VALID_STORAGE.has(best_storage)) {
-      return NextResponse.json(
-        { error: "Invalid storage" },
-        { status: 400 }
-      );
-    }
+    const result = computeResult(parsedAnswers);
 
     const { data, error } = await saveResult({
       id: String(id).slice(0, 36),
       nickname: nickname.trim(),
       answers,
-      best_model,
-      best_memory,
-      best_storage,
+      best_model: result.bestModel,
+      best_memory: result.bestMemory,
+      best_storage: result.bestStorage,
     });
 
     if (error) {
-      return NextResponse.json({ error }, { status: 500 });
+      console.error(error);
+      return NextResponse.json({ error: "Failed to save result" }, { status: 500 });
     }
 
     return NextResponse.json({ data });
   } catch (err) {
+    console.error(err);
     return NextResponse.json(
-      { error: (err as Error).message },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

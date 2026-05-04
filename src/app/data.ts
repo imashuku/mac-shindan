@@ -608,6 +608,73 @@ export type ReasonEntry = {
   reason: string;
 };
 
+export type SharedConfig = {
+  model: MacModel;
+  memory: MemorySize;
+  storage: StorageSize;
+  spec: MacSpec;
+};
+
+export function getSharedConfig(
+  model: string | null | undefined,
+  memory: string | null | undefined,
+  storage: string | null | undefined,
+): SharedConfig | null {
+  if (!model || !memory || !storage) return null;
+
+  const spec = macSpecs[model as MacModel];
+  if (!spec) return null;
+
+  const validMemory = spec.availableMemory.includes(memory as MemorySize);
+  const validStorage = spec.availableStorage.includes(storage as StorageSize);
+  if (!validMemory || !validStorage) return null;
+
+  return {
+    model: model as MacModel,
+    memory: memory as MemorySize,
+    storage: storage as StorageSize,
+    spec,
+  };
+}
+
+export function parseAnswersPayload(
+  value: unknown,
+): Record<string, number[]> | null {
+  if (typeof value !== "string") return null;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return null;
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const questionById = new Map(questions.map((q) => [q.id, q]));
+  const result: Record<string, number[]> = {};
+
+  for (const [questionId, selected] of Object.entries(parsed)) {
+    const question = questionById.get(questionId);
+    if (!question || !Array.isArray(selected)) return null;
+    if (question.type === "sa" && selected.length !== 1) return null;
+    if (question.type === "ma" && selected.length === 0) return null;
+
+    const unique = new Set<number>();
+    for (const optionIndex of selected) {
+      if (!Number.isInteger(optionIndex)) return null;
+      if (optionIndex < 0 || optionIndex >= question.options.length) return null;
+      if (unique.has(optionIndex)) return null;
+      unique.add(optionIndex);
+    }
+    result[questionId] = selected;
+  }
+
+  return result;
+}
+
 export function computeResult(answers: Record<string, number[]>) {
   const modelScores: Record<MacModel, number> = {
     neo: 0, air13: 0, air15: 0, pro14: 0, pro14pro: 0, pro16pro: 0,

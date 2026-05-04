@@ -1,11 +1,8 @@
 import { Metadata } from "next";
 import {
-  MacModel,
-  MemorySize,
-  StorageSize,
-  macSpecs,
   memoryLabels,
   storageLabels,
+  getSharedConfig,
 } from "../data";
 import SharedResultClient from "./SharedResultClient";
 
@@ -15,13 +12,10 @@ type Props = {
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const params = await searchParams;
-  const model = params.m as MacModel | undefined;
-  const memory = params.mem as MemorySize | undefined;
-  const storage = params.s as StorageSize | undefined;
-
-  const spec = model && macSpecs[model] ? macSpecs[model] : null;
-  const memLabel = memory && memoryLabels[memory] ? memoryLabels[memory] : "";
-  const stoLabel = storage && storageLabels[storage] ? storageLabels[storage] : "";
+  const config = getSharedConfig(params.m, params.mem, params.s);
+  const spec = config?.spec ?? null;
+  const memLabel = config ? memoryLabels[config.memory] : "";
+  const stoLabel = config ? storageLabels[config.storage] : "";
 
   const title = spec
     ? `${spec.name}（${memLabel} / ${stoLabel}）がおすすめ！ | Mac診断`
@@ -29,10 +23,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
   const description = spec
     ? `Mac診断の結果、${spec.name}（${spec.chip} / ${memLabel} / ${stoLabel}）がおすすめです。あなたも診断してみませんか？`
-    : "8つの質問に答えるだけで、あなたに最適なMacBookの構成がわかります。";
+    : "いくつかの質問に答えるだけで、あなたに最適なMacBookの構成がわかります。";
 
-  const ogUrl = spec
-    ? `/api/og?m=${model}&mem=${memory}&s=${storage}`
+  const ogUrl = config
+    ? `/api/og?m=${config.model}&mem=${config.memory}&s=${config.storage}`
     : "/api/og";
 
   return {
@@ -54,13 +48,10 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function ResultPage({ searchParams }: Props) {
   const params = await searchParams;
-  const model = params.m as MacModel | undefined;
-  const memory = params.mem as MemorySize | undefined;
-  const storage = params.s as StorageSize | undefined;
-
-  const spec = model && macSpecs[model] ? macSpecs[model] : null;
-  const memLabel = memory && memoryLabels[memory] ? memoryLabels[memory] : "";
-  const stoLabel = storage && storageLabels[storage] ? storageLabels[storage] : "";
+  const config = getSharedConfig(params.m, params.mem, params.s);
+  const spec = config?.spec ?? null;
+  const memLabel = config ? memoryLabels[config.memory] : "";
+  const stoLabel = config ? storageLabels[config.storage] : "";
 
   return (
     <div className="flex flex-col min-h-dvh bg-background">

@@ -14,7 +14,7 @@ const notoSansJP = Noto_Sans_JP({
 const siteUrl = "https://mac-shindan.vercel.app";
 const title = "あなたにぴったりのMacは？ | Mac診断";
 const description =
-  "8つの質問に答えるだけで、あなたに最適なMacBookの構成がわかります。MacBook Neo・Air・Proから、モデル・メモリ・ストレージまで診断。";
+  "いくつかの質問に答えるだけで、あなたに最適なMacBookの構成がわかります。MacBook Neo・Air・Proから、モデル・メモリ・ストレージまで診断。";
 
 export const metadata: Metadata = {
   title,

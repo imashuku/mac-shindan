@@ -12,6 +12,7 @@ type Props = {
   onConfirmMA: () => void;
   onBack: () => void;
   animDirection: "right" | "left";
+  disabled?: boolean;
 };
 
 export default function QuestionCard({
@@ -24,6 +25,7 @@ export default function QuestionCard({
   onConfirmMA,
   onBack,
   animDirection,
+  disabled = false,
 }: Props) {
   const animClass =
     animDirection === "right" ? "animate-slide-in-right" : "animate-slide-in-left";
@@ -65,6 +67,7 @@ export default function QuestionCard({
               onClick={() =>
                 question.type === "sa" ? onSelectSA(index) : onToggleMA(index)
               }
+              disabled={disabled}
               className={`stagger-${index + 1} animate-fade-in-up w-full text-left min-h-[52px] p-4 sm:p-5 rounded-xl transition-all duration-200 cursor-pointer border ${
                 isSelected
                   ? "border-foreground bg-foreground/[0.03] shadow-sm"
@@ -135,9 +138,9 @@ export default function QuestionCard({
         <div className="mt-6 animate-fade-in-up stagger-6">
           <button
             onClick={onConfirmMA}
-            disabled={selectedIndices.length === 0}
+            disabled={selectedIndices.length === 0 || disabled}
             className={`w-full min-h-[48px] py-3.5 rounded-xl font-medium text-base transition-all duration-200 cursor-pointer ${
-              selectedIndices.length > 0
+              selectedIndices.length > 0 && !disabled
                 ? "bg-foreground text-background hover:bg-foreground/90"
                 : "bg-foreground/10 text-foreground/30 cursor-not-allowed"
             }`}

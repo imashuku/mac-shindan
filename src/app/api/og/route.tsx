@@ -1,12 +1,9 @@
 import { ImageResponse } from "next/og";
 import { type NextRequest } from "next/server";
 import {
-  MacModel,
-  MemorySize,
-  StorageSize,
-  macSpecs,
   memoryLabels,
   storageLabels,
+  getSharedConfig,
 } from "../../data";
 
 const fontUrl =
@@ -17,22 +14,26 @@ let fontCache: ArrayBuffer | null = null;
 async function getFont(): Promise<ArrayBuffer> {
   if (fontCache) return fontCache;
   const res = await fetch(fontUrl);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch OG font: ${res.status}`);
+  }
   fontCache = await res.arrayBuffer();
   return fontCache;
 }
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const model = searchParams.get("m") as MacModel | null;
-  const memory = searchParams.get("mem") as MemorySize | null;
-  const storage = searchParams.get("s") as StorageSize | null;
+  const config = getSharedConfig(
+    searchParams.get("m"),
+    searchParams.get("mem"),
+    searchParams.get("s"),
+  );
 
-  const spec = model && macSpecs[model] ? macSpecs[model] : null;
-  const memLabel = memory && memoryLabels[memory] ? memoryLabels[memory] : "";
-  const stoLabel =
-    storage && storageLabels[storage] ? storageLabels[storage] : "";
+  const spec = config?.spec ?? null;
+  const memLabel = config ? memoryLabels[config.memory] : "";
+  const stoLabel = config ? storageLabels[config.storage] : "";
 
-  const fontData = await getFont();
+  const fontData = await getFont().catch(() => null);
 
   const name = spec?.name ?? "あなたに合うMacは？";
   const chip = spec?.chip ?? "";
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#fafafa",
-          fontFamily: "NotoSansJP",
+          fontFamily: fontData ? "NotoSansJP" : "sans-serif",
         }}
       >
         <div style={{ fontSize: 28, color: "#6e6e73", marginBottom: 16 }}>
@@ -135,7 +136,9 @@ export async function GET(req: NextRequest) {
     {
       width: 1200,
       height: 630,
-      fonts: [{ name: "NotoSansJP", data: fontData, style: "normal" }],
+      fonts: fontData
+        ? [{ name: "NotoSansJP", data: fontData, style: "normal" }]
+        : [],
     }
   );
 
