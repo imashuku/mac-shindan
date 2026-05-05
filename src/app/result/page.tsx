@@ -5,6 +5,7 @@ import {
   getSharedConfig,
 } from "../data";
 import SharedResultClient from "./SharedResultClient";
+import BrandBar from "../components/BrandBar";
 
 type Props = {
   searchParams: Promise<{ m?: string; mem?: string; s?: string }>;
@@ -55,6 +56,7 @@ export default async function ResultPage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col min-h-dvh bg-background">
+      <BrandBar />
       <div className="flex-1 flex flex-col items-center justify-center px-5 py-16">
         <div className="max-w-md w-full">
           {spec ? (
@@ -97,7 +99,7 @@ export default async function ResultPage({ searchParams }: Props) {
           <SharedResultClient />
         </div>
       </div>
-      <footer className="text-center py-6 px-4 text-xs text-muted/50 leading-relaxed">
+      <footer className="text-center py-6 px-4 text-xs text-muted/70 leading-relaxed">
         Apple、Mac、MacBookは、Apple Inc.の商標です。
         本サイトはApple Inc.と関係のない非公式の診断ツールです。
       </footer>
