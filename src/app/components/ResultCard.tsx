@@ -326,9 +326,6 @@ export default function ResultCard({
         >
           ステップアウトに相談する
         </a>
-        <p className="text-xs text-muted/60 mt-3">
-          ステップアウトマーケティング合同会社
-        </p>
       </div>
 
       {/* Restart */}
