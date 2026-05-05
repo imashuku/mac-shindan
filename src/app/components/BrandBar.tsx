@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function BrandBar() {
   return (
@@ -8,8 +9,15 @@ export default function BrandBar() {
           href="https://www.step-out.jp/"
           className="group inline-flex min-h-[36px] items-center gap-2 rounded-full px-1.5 pr-3 transition-colors hover:bg-foreground/[0.04]"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-[11px] font-bold tracking-tight text-foreground shadow-sm">
-            SO
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card shadow-sm">
+            <Image
+              src="/stepout-logo.png"
+              alt=""
+              width={16}
+              height={16}
+              className="h-4 w-4 object-contain"
+              aria-hidden="true"
+            />
           </span>
           <span className="font-medium text-foreground/75 group-hover:text-foreground">
             ステップアウト 無料診断ツール
