@@ -12,6 +12,7 @@ import {
   ReasonEntry,
   buildComparison,
 } from "../data";
+import { analyticsEvents, trackEvent } from "@/lib/analytics";
 
 type Props = {
   bestModel: MacModel;
@@ -55,6 +56,17 @@ export default function ResultCard({
   const spec = macSpecs[bestModel];
   const price = spec.priceFrom.toLocaleString();
   const savedRef = useRef(false);
+  const viewedRef = useRef(false);
+
+  useEffect(() => {
+    if (viewedRef.current) return;
+    viewedRef.current = true;
+    trackEvent(analyticsEvents.resultView, {
+      best_model: bestModel,
+      best_memory: bestMemory,
+      best_storage: bestStorage,
+    });
+  }, [bestModel, bestMemory, bestStorage]);
 
   useEffect(() => {
     if (savedRef.current) return;
@@ -70,7 +82,23 @@ export default function ResultCard({
         best_memory: bestMemory,
         best_storage: bestStorage,
       }),
-    }).catch(() => {});
+    })
+      .then((response) => {
+        trackEvent(analyticsEvents.saved, {
+          status: response.ok ? "success" : "error",
+          best_model: bestModel,
+          best_memory: bestMemory,
+          best_storage: bestStorage,
+        });
+      })
+      .catch(() => {
+        trackEvent(analyticsEvents.saved, {
+          status: "error",
+          best_model: bestModel,
+          best_memory: bestMemory,
+          best_storage: bestStorage,
+        });
+      });
   }, [answers, bestModel, bestMemory, bestStorage]);
 
   return (
@@ -136,6 +164,12 @@ export default function ResultCard({
           onClick={() => {
             const url = `${location.origin}/result?m=${bestModel}&mem=${bestMemory}&s=${bestStorage}`;
             const text = `Mac診断の結果、${spec.name}（${memoryLabels[bestMemory]} / ${storageLabels[bestStorage]}）がおすすめでした！`;
+            trackEvent(analyticsEvents.share, {
+              method: "line",
+              best_model: bestModel,
+              best_memory: bestMemory,
+              best_storage: bestStorage,
+            });
             window.open(
               `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
               "_blank",
@@ -153,6 +187,12 @@ export default function ResultCard({
           onClick={() => {
             const url = `${location.origin}/result?m=${bestModel}&mem=${bestMemory}&s=${bestStorage}`;
             const text = `Mac診断の結果、${spec.name}（${memoryLabels[bestMemory]} / ${storageLabels[bestStorage]}）がおすすめでした！`;
+            trackEvent(analyticsEvents.share, {
+              method: "x",
+              best_model: bestModel,
+              best_memory: bestMemory,
+              best_storage: bestStorage,
+            });
             window.open(
               `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
               "_blank",
@@ -304,6 +344,14 @@ export default function ResultCard({
           href="https://www.apple.com/jp/shop/go/mac"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => {
+            trackEvent(analyticsEvents.ctaClick, {
+              cta: "apple_store",
+              best_model: bestModel,
+              best_memory: bestMemory,
+              best_storage: bestStorage,
+            });
+          }}
           className="inline-block min-h-[44px] px-8 py-3 bg-foreground text-background rounded-full text-sm font-medium hover:bg-foreground/90 active:bg-foreground/80 transition-colors duration-200"
         >
           Apple Storeで見る
@@ -322,6 +370,14 @@ export default function ResultCard({
         </p>
         <a
           href="https://www.step-out.jp/contact/consult"
+          onClick={() => {
+            trackEvent(analyticsEvents.ctaClick, {
+              cta: "stepout_consult",
+              best_model: bestModel,
+              best_memory: bestMemory,
+              best_storage: bestStorage,
+            });
+          }}
           className="inline-block min-h-[44px] px-8 py-3 border border-foreground rounded-full text-sm font-medium text-foreground hover:bg-foreground hover:text-background transition-colors duration-200"
         >
           ステップアウトに相談する

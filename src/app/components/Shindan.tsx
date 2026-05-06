@@ -6,6 +6,7 @@ import ProgressBar from "./ProgressBar";
 import AnswerChips from "./AnswerChips";
 import QuestionCard from "./QuestionCard";
 import ResultCard from "./ResultCard";
+import { analyticsEvents, trackEvent } from "@/lib/analytics";
 
 type Phase = "intro" | "question" | "result";
 
@@ -35,6 +36,7 @@ export default function Shindan() {
     setIsAdvancing(false);
     setAnimDirection("right");
     setAnimKey((k) => k + 1);
+    trackEvent(analyticsEvents.start);
   }, []);
 
   const goToQuestion = useCallback(
@@ -134,9 +136,14 @@ export default function Shindan() {
       setIsAdvancing(true);
       const newAnswers = answersThroughCurrent([optionIndex]);
       setAnswers(newAnswers);
+      trackEvent(analyticsEvents.answer, {
+        question_id: questions[currentQ].id,
+        question_index: currentQ + 1,
+        answer_count: 1,
+      });
       advanceTimerRef.current = setTimeout(() => advance(newAnswers), 250);
     },
-    [advance, answersThroughCurrent, isAdvancing]
+    [advance, answersThroughCurrent, currentQ, isAdvancing]
   );
 
   const handleToggleMA = useCallback(
@@ -154,8 +161,13 @@ export default function Shindan() {
     if (maSelections.length === 0) return;
     const newAnswers = answersThroughCurrent([...maSelections]);
     setAnswers(newAnswers);
+    trackEvent(analyticsEvents.answer, {
+      question_id: questions[currentQ].id,
+      question_index: currentQ + 1,
+      answer_count: maSelections.length,
+    });
     advance(newAnswers);
-  }, [answersThroughCurrent, maSelections, advance]);
+  }, [answersThroughCurrent, currentQ, maSelections, advance]);
 
   const handleBack = useCallback(() => {
     if (currentQ > 0) {
@@ -177,6 +189,7 @@ export default function Shindan() {
     setAnswers({});
     setMaSelections([]);
     setIsAdvancing(false);
+    trackEvent(analyticsEvents.restart);
   }, []);
 
   useEffect(() => {
