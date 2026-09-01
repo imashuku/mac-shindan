@@ -1,5 +1,5 @@
-export type MacModel = "neo" | "air13" | "air15" | "pro14" | "pro14pro" | "pro16pro";
-export type MemorySize = "8gb" | "16gb" | "24gb" | "32gb" | "64gb";
+export type MacModel = "neo" | "air13" | "air15" | "pro14" | "pro14pro" | "pro16pro" | "pro14max" | "pro16max";
+export type MemorySize = "8gb" | "16gb" | "24gb" | "32gb" | "36gb" | "48gb" | "64gb";
 export type StorageSize = "256gb" | "512gb" | "1tb" | "2tb" | "4tb";
 
 export type Scores = {
@@ -103,7 +103,7 @@ export const questions: Question[] = [
         label: "やりたいことに性能が足りない",
         sub: "ソフトが重い、フリーズする",
         scores: {
-          model: { pro14: 1, pro14pro: 1 },
+          model: { pro14: 1, pro14pro: 1, pro14max: 1, pro16max: 1 },
           memory: { "24gb": 1 },
           storage: {},
         },
@@ -198,7 +198,7 @@ export const questions: Question[] = [
         label: "毎日のように使っている",
         sub: "仕事やプライベートで日常的に使う",
         scores: {
-          model: { air13: 1, air15: 2, pro14: 3, pro14pro: 2 },
+          model: { air13: 1, air15: 2, pro14: 3, pro14pro: 2, pro14max: 1, pro16max: 1 },
           memory: { "16gb": 2, "24gb": 2 },
           storage: { "512gb": 2, "1tb": 2 },
         },
@@ -260,7 +260,7 @@ export const questions: Question[] = [
         label: "動画の編集",
         sub: "YouTube動画、プロモーション映像など",
         scores: {
-          model: { pro14: 2, pro14pro: 3, pro16pro: 2 },
+          model: { pro14: 2, pro14pro: 3, pro16pro: 2, pro14max: 3, pro16max: 3 },
           memory: { "24gb": 2, "32gb": 3 },
           storage: { "1tb": 2, "2tb": 3 },
         },
@@ -269,7 +269,7 @@ export const questions: Question[] = [
         label: "プログラミング・開発",
         sub: "Webサイトやアプリの開発、AI開発など",
         scores: {
-          model: { pro14: 2, pro14pro: 3, pro16pro: 2 },
+          model: { pro14: 2, pro14pro: 3, pro16pro: 2, pro14max: 2, pro16max: 1 },
           memory: { "24gb": 2, "32gb": 3, "64gb": 1 },
           storage: { "512gb": 1, "1tb": 3 },
         },
@@ -312,7 +312,7 @@ export const questions: Question[] = [
         label: "30万円以上でもOK",
         sub: "長く使うからいいものがほしい",
         scores: {
-          model: { pro14: 1, pro14pro: 4, pro16pro: 3 },
+          model: { pro14: 1, pro14pro: 4, pro16pro: 3, pro14max: 2, pro16max: 3 },
           memory: { "24gb": 2, "32gb": 3, "64gb": 1 },
           storage: { "1tb": 2, "2tb": 2 },
         },
@@ -337,7 +337,7 @@ export const questions: Question[] = [
         label: "車移動が多いので重さは気にならない",
         sub: "駐車場から会議室まで運ぶ程度",
         scores: {
-          model: { air13: 1, air15: 2, pro14: 3, pro14pro: 2, pro16pro: 1 },
+          model: { air13: 1, air15: 2, pro14: 3, pro14pro: 2, pro16pro: 1, pro14max: 1, pro16max: 1 },
           memory: {},
           storage: {},
         },
@@ -355,7 +355,7 @@ export const questions: Question[] = [
         label: "ほぼ自宅・オフィスで使う",
         sub: "持ち運びはあまり考えていない",
         scores: {
-          model: { air15: 3, pro14: 1, pro14pro: 2, pro16pro: 3 },
+          model: { air15: 3, pro14: 1, pro14pro: 2, pro16pro: 3, pro14max: 1, pro16max: 3 },
           memory: {},
           storage: {},
         },
@@ -380,7 +380,7 @@ export const questions: Question[] = [
         label: "大きめの画面がいい",
         sub: "15〜16インチ。一覧性を重視",
         scores: {
-          model: { air15: 4, pro16pro: 3 },
+          model: { air15: 4, pro16pro: 3, pro16max: 2 },
           memory: {},
           storage: {},
         },
@@ -389,7 +389,7 @@ export const questions: Question[] = [
         label: "こだわりはない",
         sub: "使いやすければどちらでも",
         scores: {
-          model: { neo: 1, air13: 2, air15: 1, pro14: 1 },
+          model: { neo: 1, air13: 2, air15: 1, pro14: 1, pro14max: 1 },
           memory: {},
           storage: {},
         },
@@ -476,7 +476,7 @@ export const questions: Question[] = [
         label: "プロの仕事もやりたい",
         sub: "制作・開発など本格的なスキルを身につけたい",
         scores: {
-          model: { pro14: 2, pro14pro: 3, pro16pro: 1 },
+          model: { pro14: 2, pro14pro: 3, pro16pro: 1, pro14max: 3, pro16max: 2 },
           memory: { "24gb": 2, "32gb": 3 },
           storage: { "1tb": 3, "2tb": 1 },
         },
@@ -585,6 +585,34 @@ export const macSpecs: Record<MacModel, MacSpec> = {
     colors: "Space Black, Silver",
     fanless: false,
   },
+  pro14max: {
+    id: "pro14max",
+    name: "MacBook Pro 14インチ",
+    chip: "M5 Max",
+    priceFrom: 599800,
+    screen: "14.2インチ XDR",
+    availableMemory: ["36gb", "48gb", "64gb"],
+    availableStorage: ["2tb", "4tb"],
+    weight: "1.55 kg", // TODO: verify — same chassis as M5 Pro; may be slightly heavier
+    battery: "最大24時間",
+    ports: "Thunderbolt 5 ×3、HDMI、SDカード、MagSafe",
+    colors: "Space Black, Silver",
+    fanless: false,
+  },
+  pro16max: {
+    id: "pro16max",
+    name: "MacBook Pro 16インチ",
+    chip: "M5 Max",
+    priceFrom: 649800, // TODO: verify — base 18C/32C GPU 36GB model
+    screen: "16.2インチ XDR",
+    availableMemory: ["36gb", "48gb", "64gb"],
+    availableStorage: ["2tb", "4tb"],
+    weight: "約2.1 kg",
+    battery: "最大24時間",
+    ports: "Thunderbolt 5 ×3、HDMI、SDカード、MagSafe",
+    colors: "Space Black, Silver",
+    fanless: false,
+  },
 };
 
 export const memoryLabels: Record<MemorySize, string> = {
@@ -592,6 +620,8 @@ export const memoryLabels: Record<MemorySize, string> = {
   "16gb": "16GB",
   "24gb": "24GB",
   "32gb": "32GB",
+  "36gb": "36GB",
+  "48gb": "48GB",
   "64gb": "64GB",
 };
 
@@ -677,10 +707,10 @@ export function parseAnswersPayload(
 
 export function computeResult(answers: Record<string, number[]>) {
   const modelScores: Record<MacModel, number> = {
-    neo: 0, air13: 0, air15: 0, pro14: 0, pro14pro: 0, pro16pro: 0,
+    neo: 0, air13: 0, air15: 0, pro14: 0, pro14pro: 0, pro16pro: 0, pro14max: 0, pro16max: 0,
   };
   const memoryScores: Record<MemorySize, number> = {
-    "8gb": 0, "16gb": 0, "24gb": 0, "32gb": 0, "64gb": 0,
+    "8gb": 0, "16gb": 0, "24gb": 0, "32gb": 0, "36gb": 0, "48gb": 0, "64gb": 0,
   };
   const storageScores: Record<StorageSize, number> = {
     "256gb": 0, "512gb": 0, "1tb": 0, "2tb": 0, "4tb": 0,
@@ -742,7 +772,7 @@ function buildReasons(
 ): ReasonEntry[] {
   const result: ReasonEntry[] = [];
   const spec = macSpecs[model];
-  const isPro = model === "pro14" || model === "pro14pro" || model === "pro16pro";
+  const isPro = model === "pro14" || model === "pro14pro" || model === "pro16pro" || model === "pro14max" || model === "pro16max";
 
   const purposeIdx = findQuestion("purpose");
   const purposeIdxs = answers["purpose"] ?? [];
