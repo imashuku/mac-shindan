@@ -35,9 +35,9 @@ function ConfigTile({
   detail?: string;
 }) {
   return (
-    <div className="bg-background rounded-xl p-4 text-center">
+    <div className="bg-background rounded-xl px-1 py-4 sm:p-4 text-center whitespace-nowrap">
       <div className="text-xs text-muted mb-1">{label}</div>
-      <div className="text-lg font-bold text-foreground">{value}</div>
+      <div className="text-base sm:text-lg font-bold text-foreground">{value}</div>
       {detail && <div className="text-xs text-muted mt-0.5">{detail}</div>}
     </div>
   );
@@ -121,7 +121,7 @@ export default function ResultCard({
         </div>
 
         {/* Configuration tiles */}
-        <div className="grid grid-cols-3 gap-3 p-5 bg-foreground/[0.02]">
+        <div className="grid grid-cols-[1fr_1fr_1.5fr] gap-2 sm:gap-3 p-4 sm:p-5 bg-foreground/[0.02]">
           <ConfigTile label="メモリ" value={memoryLabels[bestMemory]} />
           <ConfigTile label="ストレージ" value={storageLabels[bestStorage]} />
           <ConfigTile label="価格" value={`${price}円〜`} detail="税込" />
@@ -144,9 +144,9 @@ export default function ResultCard({
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted">ファンレス</span>
+            <span className="text-muted">冷却ファン</span>
             <span className="text-foreground font-medium">
-              {spec.fanless ? "静音（ファンなし）" : "あり"}
+              {spec.fanless ? "なし（静音）" : "あり"}
             </span>
           </div>
           <div className="flex justify-between">

@@ -70,18 +70,18 @@ export default async function ResultPage({ searchParams }: Props) {
                   </h1>
                   <p className="text-muted">{spec.screen}</p>
                 </div>
-                <div className="grid grid-cols-3 gap-3 p-5 bg-foreground/[0.02]">
-                  <div className="bg-background rounded-xl p-4 text-center">
+                <div className="grid grid-cols-[1fr_1fr_1.5fr] gap-2 sm:gap-3 p-4 sm:p-5 bg-foreground/[0.02]">
+                  <div className="bg-background rounded-xl px-1 py-4 sm:p-4 text-center whitespace-nowrap">
                     <div className="text-xs text-muted mb-1">メモリ</div>
-                    <div className="text-lg font-bold text-foreground">{memLabel}</div>
+                    <div className="text-base sm:text-lg font-bold text-foreground">{memLabel}</div>
                   </div>
-                  <div className="bg-background rounded-xl p-4 text-center">
+                  <div className="bg-background rounded-xl px-1 py-4 sm:p-4 text-center whitespace-nowrap">
                     <div className="text-xs text-muted mb-1">ストレージ</div>
-                    <div className="text-lg font-bold text-foreground">{stoLabel}</div>
+                    <div className="text-base sm:text-lg font-bold text-foreground">{stoLabel}</div>
                   </div>
-                  <div className="bg-background rounded-xl p-4 text-center">
+                  <div className="bg-background rounded-xl px-1 py-4 sm:p-4 text-center whitespace-nowrap">
                     <div className="text-xs text-muted mb-1">価格</div>
-                    <div className="text-lg font-bold text-foreground">
+                    <div className="text-base sm:text-lg font-bold text-foreground">
                       {spec.priceFrom.toLocaleString()}円〜
                     </div>
                   </div>

@@ -1,5 +1,5 @@
 export type MacModel = "neo" | "air13" | "air15" | "pro14" | "pro14pro" | "pro16pro";
-export type MemorySize = "8gb" | "16gb" | "24gb" | "32gb" | "64gb";
+export type MemorySize = "8gb" | "16gb" | "24gb" | "32gb" | "48gb" | "64gb";
 export type StorageSize = "256gb" | "512gb" | "1tb" | "2tb" | "4tb";
 
 export type Scores = {
@@ -282,7 +282,7 @@ export const questions: Question[] = [
     type: "sa",
     options: [
       {
-        label: "10万円くらいまで",
+        label: "12万円くらいまで",
         sub: "なるべく出費を抑えたい",
         scores: {
           model: { neo: 5 },
@@ -291,7 +291,7 @@ export const questions: Question[] = [
         },
       },
       {
-        label: "15〜20万円くらい",
+        label: "20〜25万円くらい",
         sub: "ある程度の投資はできる",
         scores: {
           model: { air13: 4, air15: 2 },
@@ -300,7 +300,7 @@ export const questions: Question[] = [
         },
       },
       {
-        label: "25万円くらいまで",
+        label: "35万円くらいまで",
         sub: "しっかり使えるものを選びたい",
         scores: {
           model: { air13: 1, air15: 2, pro14: 4 },
@@ -309,7 +309,7 @@ export const questions: Question[] = [
         },
       },
       {
-        label: "30万円以上でもOK",
+        label: "40万円以上でもOK",
         sub: "長く使うからいいものがほしい",
         scores: {
           model: { pro14: 1, pro14pro: 4, pro16pro: 3 },
@@ -505,7 +505,7 @@ export const macSpecs: Record<MacModel, MacSpec> = {
     id: "neo",
     name: "MacBook Neo",
     chip: "A18 Pro",
-    priceFrom: 99800,
+    priceFrom: 119800,
     screen: "13インチ",
     availableMemory: ["8gb"],
     availableStorage: ["256gb", "512gb"],
@@ -519,7 +519,7 @@ export const macSpecs: Record<MacModel, MacSpec> = {
     id: "air13",
     name: "MacBook Air 13インチ",
     chip: "M5",
-    priceFrom: 184800,
+    priceFrom: 224800,
     screen: "13.6インチ",
     availableMemory: ["16gb", "24gb", "32gb"],
     availableStorage: ["512gb", "1tb", "2tb", "4tb"],
@@ -533,7 +533,7 @@ export const macSpecs: Record<MacModel, MacSpec> = {
     id: "air15",
     name: "MacBook Air 15インチ",
     chip: "M5",
-    priceFrom: 219800,
+    priceFrom: 264800,
     screen: "15.3インチ",
     availableMemory: ["16gb", "24gb", "32gb"],
     availableStorage: ["512gb", "1tb", "2tb", "4tb"],
@@ -547,10 +547,10 @@ export const macSpecs: Record<MacModel, MacSpec> = {
     id: "pro14",
     name: "MacBook Pro 14インチ",
     chip: "M5",
-    priceFrom: 248800,
+    priceFrom: 339800,
     screen: "14.2インチ XDR",
     availableMemory: ["16gb", "24gb", "32gb"],
-    availableStorage: ["512gb", "1tb", "2tb", "4tb"],
+    availableStorage: ["1tb", "2tb", "4tb"],
     weight: "1.55 kg",
     battery: "最大24時間",
     ports: "Thunderbolt 4 ×3、HDMI、SDカード、MagSafe",
@@ -561,12 +561,13 @@ export const macSpecs: Record<MacModel, MacSpec> = {
     id: "pro14pro",
     name: "MacBook Pro 14インチ",
     chip: "M5 Pro",
-    priceFrom: 369800,
+    priceFrom: 429800,
     screen: "14.2インチ XDR",
-    availableMemory: ["24gb", "32gb", "64gb"],
-    availableStorage: ["512gb", "1tb", "2tb", "4tb"],
-    weight: "1.55 kg",
-    battery: "最大24時間",
+    // 64GBは20コアGPU搭載M5 Proのみ選択可
+    availableMemory: ["24gb", "48gb", "64gb"],
+    availableStorage: ["1tb", "2tb", "4tb"],
+    weight: "1.60 kg",
+    battery: "最大22時間",
     ports: "Thunderbolt 5 ×3、HDMI、SDカード、MagSafe",
     colors: "Space Black, Silver",
     fanless: false,
@@ -575,11 +576,11 @@ export const macSpecs: Record<MacModel, MacSpec> = {
     id: "pro16pro",
     name: "MacBook Pro 16インチ",
     chip: "M5 Pro",
-    priceFrom: 449800,
+    priceFrom: 519800,
     screen: "16.2インチ XDR",
-    availableMemory: ["24gb", "32gb", "64gb"],
+    availableMemory: ["24gb", "48gb", "64gb"],
     availableStorage: ["1tb", "2tb", "4tb"],
-    weight: "約2.1 kg",
+    weight: "2.14 kg",
     battery: "最大24時間",
     ports: "Thunderbolt 5 ×3、HDMI、SDカード、MagSafe",
     colors: "Space Black, Silver",
@@ -592,8 +593,11 @@ export const memoryLabels: Record<MemorySize, string> = {
   "16gb": "16GB",
   "24gb": "24GB",
   "32gb": "32GB",
+  "48gb": "48GB",
   "64gb": "64GB",
 };
+
+const memoryOrder: MemorySize[] = ["8gb", "16gb", "24gb", "32gb", "48gb", "64gb"];
 
 export const storageLabels: Record<StorageSize, string> = {
   "256gb": "256GB",
@@ -602,6 +606,17 @@ export const storageLabels: Record<StorageSize, string> = {
   "2tb": "2TB",
   "4tb": "4TB",
 };
+
+const storageOrder: StorageSize[] = ["256gb", "512gb", "1tb", "2tb", "4tb"];
+
+// 希望サイズがそのモデルで選べないときは、下げずに一つ上の選べるサイズへ寄せる
+function pickAvailable<T>(desired: T, available: T[], order: T[]): T {
+  if (available.includes(desired)) return desired;
+  return (
+    order.slice(order.indexOf(desired)).find((size) => available.includes(size))
+    ?? available[available.length - 1]
+  );
+}
 
 export type ReasonEntry = {
   answer: string;
@@ -680,7 +695,7 @@ export function computeResult(answers: Record<string, number[]>) {
     neo: 0, air13: 0, air15: 0, pro14: 0, pro14pro: 0, pro16pro: 0,
   };
   const memoryScores: Record<MemorySize, number> = {
-    "8gb": 0, "16gb": 0, "24gb": 0, "32gb": 0, "64gb": 0,
+    "8gb": 0, "16gb": 0, "24gb": 0, "32gb": 0, "48gb": 0, "64gb": 0,
   };
   const storageScores: Record<StorageSize, number> = {
     "256gb": 0, "512gb": 0, "1tb": 0, "2tb": 0, "4tb": 0,
@@ -711,14 +726,12 @@ export function computeResult(answers: Record<string, number[]>) {
   const memoryRank = (Object.entries(memoryScores) as [MemorySize, number][])
     .sort(([, a], [, b]) => b - a)
     .map(([k]) => k);
-  const bestMemory = memoryRank.find((m) => spec.availableMemory.includes(m))
-    ?? spec.availableMemory[0];
+  const bestMemory = pickAvailable(memoryRank[0], spec.availableMemory, memoryOrder);
 
   const storageRank = (Object.entries(storageScores) as [StorageSize, number][])
     .sort(([, a], [, b]) => b - a)
     .map(([k]) => k);
-  const bestStorage = storageRank.find((s) => spec.availableStorage.includes(s))
-    ?? spec.availableStorage[0];
+  const bestStorage = pickAvailable(storageRank[0], spec.availableStorage, storageOrder);
 
   const runners = (Object.entries(modelScores) as [MacModel, number][])
     .sort(([, a], [, b]) => b - a)

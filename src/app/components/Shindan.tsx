@@ -232,7 +232,7 @@ export default function Shindan() {
               はじめる
             </button>
             <p className="text-xs text-muted/60 mt-6">
-              2026年4月時点のラインナップに基づきます
+              2026年9月時点のラインナップに基づきます
             </p>
           </div>
         </div>
