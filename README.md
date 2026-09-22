@@ -20,6 +20,20 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## ラインナップの月次照合
+
+`src/app/data.ts` の `macSpecs` を Apple公式（日本）の購入ページ・仕様ページと突き合わせる。
+
+```bash
+npm run lineup:check   # 差分レポートを表示（何も書き換えない）
+npm run lineup:apply   # 価格差分だけを data.ts に反映し、日付表記を更新する
+```
+
+- 終了コード: `0` 差分なし ／ `10` 差分または警告あり ／ `2` 取得・解析に失敗
+- 自動で書き換えるのは `priceFrom` のみ。メモリ・ストレージ・重さ・バッテリー・チップ・新機種は警告として出すだけで、採点への反映は人が判断する
+- 取得できないときは推測で埋めずに `2` で止まる
+- 毎月1日にクラウドのルーティン「MacBook lineup checker v2」がこれを回し、差分があればPRを立てる
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
